@@ -1,0 +1,249 @@
+{
+  "id": "wf02-approved-action",
+  "name": "Nex WF02 - Execução de Ação Aprovada",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "nex-wf02-action",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-action",
+      "name": "Webhook Action Event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [100, 300],
+      "webhookId": "nex-wf02-action"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($env.NEX_API_URL || 'http://127.0.0.1:8000') + '/api/internal/actions/' + $json.body.incident_id + '/authorization' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Key",
+              "value": "={{ $env.INTERNAL_API_KEY || $vars.INTERNAL_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-check-authorization",
+      "name": "Check Operator Authorization",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [320, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-auth",
+              "leftValue": "={{ $json.is_authorized }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node-if-authorized",
+      "name": "Is Operator Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.NEX_API_URL || 'http://127.0.0.1:8000') + '/api/internal/mock-tickets' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Key",
+              "value": "={{ $env.INTERNAL_API_KEY || $vars.INTERNAL_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "incident_id",
+              "value": "={{ $('Check Operator Authorization').item.json.incident_id }}"
+            },
+            {
+              "name": "priority",
+              "value": "={{ $('Check Operator Authorization').item.json.priority }}"
+            },
+            {
+              "name": "category",
+              "value": "={{ $('Check Operator Authorization').item.json.category }}"
+            },
+            {
+              "name": "description",
+              "value": "Chamado interno aberto após aprovação do operador."
+            },
+            {
+              "name": "created_by_workflow_id",
+              "value": "WF02_n8n_executor"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-create-ticket",
+      "name": "Create Mock Ticket (Idempotent)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [780, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.NEX_API_URL || 'http://127.0.0.1:8000') + '/api/internal/actions/result' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Internal-Key",
+              "value": "={{ $env.INTERNAL_API_KEY || $vars.INTERNAL_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "incident_id",
+              "value": "={{ $('Check Operator Authorization').item.json.incident_id }}"
+            },
+            {
+              "name": "status",
+              "value": "executed"
+            },
+            {
+              "name": "workflow_execution_id",
+              "value": "={{ $execution.id }}"
+            },
+            {
+              "name": "correlation_id",
+              "value": "={{ $('Webhook Action Event').item.json.body.correlation_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-mark-executed",
+      "name": "Mark Action Executed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'action_executed', incident_id: $('Check Operator Authorization').item.json.incident_id }) }}",
+        "options": {}
+      },
+      "id": "node-respond-action-webhook",
+      "name": "Respond Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1220, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'not_authorized' }) }}",
+        "options": { "responseCode": 409 }
+      },
+      "id": "node-respond-action-rejected",
+      "name": "Respond Authorization Rejected",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [780, 410]
+    }
+  ],
+  "connections": {
+    "Webhook Action Event": {
+      "main": [
+        [
+          {
+            "node": "Check Operator Authorization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Operator Authorization": {
+      "main": [
+        [
+          {
+            "node": "Is Operator Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Operator Approved?": {
+      "main": [
+        [
+          {
+            "node": "Create Mock Ticket (Idempotent)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Authorization Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Mock Ticket (Idempotent)": {
+      "main": [
+        [
+          {
+            "node": "Mark Action Executed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Action Executed": {
+      "main": [
+        [
+          {
+            "node": "Respond Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

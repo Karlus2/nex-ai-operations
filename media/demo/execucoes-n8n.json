@@ -1,0 +1,151 @@
+[
+  {
+    "id": 4,
+    "workflowId": "wf01-incident-triage",
+    "status": "success",
+    "startedAt": "2026-11-16 16:08:55.013",
+    "stoppedAt": "2026-11-16 16:08:59.557",
+    "nodes": [
+      {
+        "name": "Webhook Triage Event",
+        "status": "success",
+        "duration_ms": 2
+      },
+      {
+        "name": "Fast Acknowledge Webhook",
+        "status": "success",
+        "duration_ms": 13
+      },
+      {
+        "name": "Google Gemini Chat Model",
+        "status": "success",
+        "duration_ms": 1522
+      },
+      {
+        "name": "Tool get_order_context",
+        "status": "success",
+        "duration_ms": 48
+      },
+      {
+        "name": "Tool get_operations_policy",
+        "status": "success",
+        "duration_ms": 10
+      },
+      {
+        "name": "Structured Output Parser",
+        "status": "success",
+        "duration_ms": 3
+      },
+      {
+        "name": "AI Agent Gemini",
+        "status": "success",
+        "duration_ms": 4406
+      },
+      {
+        "name": "Save Validated Proposal",
+        "status": "success",
+        "duration_ms": 87
+      }
+    ],
+    "completedQueries": [
+      "Tool get_order_context",
+      "Tool get_operations_policy"
+    ],
+    "error": null
+  },
+  {
+    "id": 5,
+    "workflowId": "wf02-approved-action",
+    "status": "success",
+    "startedAt": "2026-11-16 16:09:00.116",
+    "stoppedAt": "2026-11-16 16:09:00.260",
+    "nodes": [
+      {
+        "name": "Webhook Action Event",
+        "status": "success",
+        "duration_ms": 0
+      },
+      {
+        "name": "Check Operator Authorization",
+        "status": "success",
+        "duration_ms": 16
+      },
+      {
+        "name": "Is Operator Approved?",
+        "status": "success",
+        "duration_ms": 5
+      },
+      {
+        "name": "Create Mock Ticket (Idempotent)",
+        "status": "success",
+        "duration_ms": 51
+      },
+      {
+        "name": "Mark Action Executed",
+        "status": "success",
+        "duration_ms": 46
+      },
+      {
+        "name": "Respond Webhook",
+        "status": "success",
+        "duration_ms": 11
+      }
+    ],
+    "completedQueries": [],
+    "error": null
+  },
+  {
+    "id": 7,
+    "workflowId": "wf01-incident-triage",
+    "status": "success",
+    "startedAt": "2026-11-16 16:10:26.384",
+    "stoppedAt": "2026-11-16 16:10:31.755",
+    "nodes": [
+      {
+        "name": "Webhook Triage Event",
+        "status": "success",
+        "duration_ms": 0
+      },
+      {
+        "name": "Fast Acknowledge Webhook",
+        "status": "success",
+        "duration_ms": 1
+      },
+      {
+        "name": "Google Gemini Chat Model",
+        "status": "success",
+        "duration_ms": 3882
+      },
+      {
+        "name": "Tool get_order_context",
+        "status": "success",
+        "duration_ms": 23
+      },
+      {
+        "name": "Tool get_operations_policy",
+        "status": "success",
+        "duration_ms": 8
+      },
+      {
+        "name": "Structured Output Parser",
+        "status": "success",
+        "duration_ms": 1
+      },
+      {
+        "name": "AI Agent Gemini",
+        "status": "success",
+        "duration_ms": 5318
+      },
+      {
+        "name": "Save Validated Proposal",
+        "status": "success",
+        "duration_ms": 38
+      }
+    ],
+    "completedQueries": [
+      "Tool get_order_context",
+      "Tool get_operations_policy"
+    ],
+    "error": null
+  }
+]
